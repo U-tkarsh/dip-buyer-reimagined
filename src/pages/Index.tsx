@@ -2,8 +2,20 @@
 import { ArrowRight, TrendingUp, BarChart3, Brain, Shield, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Index = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
   const features = [
     {
       icon: Brain,
@@ -52,10 +64,17 @@ const Index = () => {
             <a href="#features" className="text-gray-300 hover:text-white transition-colors">Features</a>
             <a href="#about" className="text-gray-300 hover:text-white transition-colors">About</a>
             <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Pricing</a>
-            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+            <Button 
+              variant="outline" 
+              className="border-white/20 text-white hover:bg-white/10"
+              onClick={() => navigate('/auth')}
+            >
               Sign In
             </Button>
-            <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+            <Button 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+              onClick={() => navigate('/auth')}
+            >
               Get Started
             </Button>
           </div>
@@ -82,7 +101,11 @@ const Index = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-6">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-6"
+              onClick={() => navigate('/auth')}
+            >
               Start Free Trial
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
@@ -147,7 +170,11 @@ const Index = () => {
           <p className="text-xl text-gray-300 mb-8">
             Join thousands of successful traders who trust DipBuyer AI for their investment decisions.
           </p>
-          <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-6">
+          <Button 
+            size="lg" 
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-6"
+            onClick={() => navigate('/auth')}
+          >
             Get Started Today
             <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
