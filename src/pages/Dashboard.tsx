@@ -130,33 +130,44 @@ const Dashboard = () => {
 
   const importNSEData = async () => {
     setImporting(true);
+    console.log('Starting NSE data import...');
+    
     try {
-      console.log('Importing NSE data...');
+      toast({
+        title: "Import Started",
+        description: "Importing NSE data, please wait...",
+      });
+
+      console.log('Calling import-nse-data function...');
       
-      const { data, error } = await supabase.functions.invoke('import-nse-data');
+      const { data, error } = await supabase.functions.invoke('import-nse-data', {
+        body: JSON.stringify({})
+      });
+      
+      console.log('Function response:', { data, error });
       
       if (error) {
-        console.error('Error importing NSE data:', error);
-        throw error;
+        console.error('Function error:', error);
+        throw new Error(error.message || 'Failed to import NSE data');
       }
 
-      console.log('Import response:', data);
+      console.log('Import successful:', data);
       
       toast({
         title: "Success",
         description: "NSE stock data imported successfully! Refreshing dashboard...",
       });
 
-      // Refresh the dashboard data
+      // Refresh the dashboard data after a short delay
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 2000);
 
     } catch (error: any) {
-      console.error('Error importing NSE data:', error);
+      console.error('Import error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to import NSE data",
+        description: error.message || "Failed to import NSE data. Please check console for details.",
         variant: "destructive",
       });
     } finally {
