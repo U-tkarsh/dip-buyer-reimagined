@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Bell, User, LogOut } from 'lucide-react';
+import { TrendingUp, TrendingDown, Bell, User, LogOut, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,6 +32,7 @@ const Dashboard = () => {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -128,6 +128,42 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  const importNSEData = async () => {
+    setImporting(true);
+    try {
+      console.log('Importing NSE data...');
+      
+      const { data, error } = await supabase.functions.invoke('import-nse-data');
+      
+      if (error) {
+        console.error('Error importing NSE data:', error);
+        throw error;
+      }
+
+      console.log('Import response:', data);
+      
+      toast({
+        title: "Success",
+        description: "NSE stock data imported successfully! Refreshing dashboard...",
+      });
+
+      // Refresh the dashboard data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('Error importing NSE data:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to import NSE data",
+        variant: "destructive",
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const addToWatchlist = async (stockId: string) => {
     try {
       const { error } = await supabase
@@ -180,6 +216,16 @@ const Dashboard = () => {
             <span className="text-xl font-bold text-white">DipBuyer AI</span>
           </div>
           <div className="flex items-center space-x-4">
+            <Button
+              onClick={importNSEData}
+              disabled={importing}
+              variant="outline"
+              size="sm"
+              className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {importing ? 'Importing...' : 'Import NSE Data'}
+            </Button>
             <span className="text-white">Welcome, {user?.email}</span>
             <Button
               onClick={handleSignOut}
@@ -218,11 +264,11 @@ const Dashboard = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between text-white">
                         <span>Current Price:</span>
-                        <span>${rec.stock?.current_price || 'N/A'}</span>
+                        <span>₹{rec.stock?.current_price || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between text-white">
                         <span>Target Price:</span>
-                        <span>${rec.target_price || 'N/A'}</span>
+                        <span>₹{rec.target_price ? rec.target_price.toFixed(2) : 'N/A'}</span>
                       </div>
                       <div className="flex justify-between text-white">
                         <span>Confidence:</span>
@@ -244,14 +290,14 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center text-gray-400 py-8">
-              <p>No AI recommendations available at the moment.</p>
+              <p>No AI recommendations available. Try importing NSE data first!</p>
             </div>
           )}
         </section>
 
         {/* Market Overview */}
         <section>
-          <h2 className="text-2xl font-bold text-white mb-6">Market Overview</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">NSE Market Overview</h2>
           {stocks.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {stocks.map((stock) => (
@@ -271,7 +317,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div className="text-xl font-bold text-white mb-1">
-                      ${stock.current_price || 'N/A'}
+                      ₹{stock.current_price || 'N/A'}
                     </div>
                     <div className="text-gray-400 text-sm">{stock.name}</div>
                     <div className="text-gray-400 text-xs mt-1">{stock.sector || 'Unknown'}</div>
@@ -281,7 +327,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center text-gray-400 py-8">
-              <p>No stock data available at the moment.</p>
+              <p>No stock data available. Click "Import NSE Data" to load Indian stock market data!</p>
             </div>
           )}
         </section>
