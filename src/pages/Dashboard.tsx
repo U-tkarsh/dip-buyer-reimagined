@@ -221,7 +221,7 @@ const Dashboard = () => {
               disabled={importing}
               variant="outline"
               size="sm"
-              className="border-green-500/50 text-green-400 hover:bg-green-500/10"
+              className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400"
             >
               <Download className="w-4 h-4 mr-2" />
               {importing ? 'Importing...' : 'Import NSE Data'}
@@ -231,7 +231,7 @@ const Dashboard = () => {
               onClick={handleSignOut}
               variant="outline"
               size="sm"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-400"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
