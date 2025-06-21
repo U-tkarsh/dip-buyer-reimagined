@@ -60,10 +60,20 @@ const Dashboard = () => {
         console.log('Stocks data:', stocksData);
         setStocks(stocksData || []);
 
-        // Fetch recommendations with stock data using separate queries
+        // Fetch recommendations with stock data using a join query
         const { data: recommendationsData, error: recommendationsError } = await supabase
           .from('recommendations')
-          .select('*')
+          .select(`
+            *,
+            stocks!inner (
+              id,
+              symbol,
+              name,
+              current_price,
+              price_change_24h,
+              sector
+            )
+          `)
           .gte('expires_at', new Date().toISOString())
           .order('confidence_score', { ascending: false });
 
@@ -72,42 +82,17 @@ const Dashboard = () => {
           throw recommendationsError;
         }
 
-        console.log('Recommendations data:', recommendationsData);
+        console.log('Recommendations with stocks:', recommendationsData);
 
-        // Fetch stock details for each recommendation
-        if (recommendationsData && recommendationsData.length > 0) {
-          const stockIds = recommendationsData.map(rec => rec.stock_id);
-          const { data: stockDetails, error: stockDetailsError } = await supabase
-            .from('stocks')
-            .select('*')
-            .in('id', stockIds);
+        // Transform the data to match our interface
+        const transformedRecommendations = (recommendationsData || []).map(rec => ({
+          ...rec,
+          stock: rec.stocks
+        })) as Recommendation[];
 
-          if (stockDetailsError) {
-            console.error('Error fetching stock details:', stockDetailsError);
-            throw stockDetailsError;
-          }
+        console.log('Transformed recommendations:', transformedRecommendations);
+        setRecommendations(transformedRecommendations);
 
-          console.log('Stock details:', stockDetails);
-
-          // Combine recommendations with stock data
-          const combinedRecommendations = recommendationsData
-            .map(rec => {
-              const stockDetail = stockDetails?.find(stock => stock.id === rec.stock_id);
-              if (stockDetail) {
-                return {
-                  ...rec,
-                  stock: stockDetail
-                };
-              }
-              return null;
-            })
-            .filter(rec => rec !== null) as Recommendation[];
-
-          console.log('Combined recommendations:', combinedRecommendations);
-          setRecommendations(combinedRecommendations);
-        } else {
-          setRecommendations([]);
-        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
