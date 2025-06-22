@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Bell, User, LogOut, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import CSVUpload from '@/components/CSVUpload';
 
 interface Stock {
   id: string;
@@ -111,6 +112,12 @@ const Dashboard = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const refreshDashboard = () => {
+    setLoading(true);
+    // Trigger a re-fetch of data
+    window.location.reload();
   };
 
   const importNSEData = async () => {
@@ -238,6 +245,11 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* CSV Upload Section */}
+        <section className="mb-8">
+          <CSVUpload onUploadComplete={refreshDashboard} />
+        </section>
+
         {/* AI Recommendations */}
         <section className="mb-8">
           <h2 className="text-2xl font-bold text-white mb-6">AI Recommendations</h2>
@@ -286,14 +298,14 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center text-gray-400 py-8">
-              <p>No AI recommendations available. Try importing NSE data first!</p>
+              <p>No AI recommendations available. Try importing NSE data or uploading a CSV file!</p>
             </div>
           )}
         </section>
 
         {/* Market Overview */}
         <section>
-          <h2 className="text-2xl font-bold text-white mb-6">NSE Market Overview</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Market Overview</h2>
           {stocks.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {stocks.map((stock) => (
@@ -323,7 +335,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center text-gray-400 py-8">
-              <p>No stock data available. Click "Import NSE Data" to load Indian stock market data!</p>
+              <p>No stock data available. Click "Import NSE Data" or upload a CSV file to load stock market data!</p>
             </div>
           )}
         </section>
