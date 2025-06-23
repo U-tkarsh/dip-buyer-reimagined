@@ -1,10 +1,11 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Bell, User, LogOut, Download, Brain } from 'lucide-react';
+import { ArrowUp, TrendingDown, Bell, User, LogOut, Download, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import CSVUpload from '@/components/CSVUpload';
@@ -319,7 +320,7 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
+              <ArrowUp className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold text-white">DipBuyer AI</span>
           </div>

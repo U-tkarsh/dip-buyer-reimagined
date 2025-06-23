@@ -1,5 +1,5 @@
 
-import { ArrowRight, TrendingUp, BarChart3, Brain, Shield, Zap, Users } from "lucide-react";
+import { ArrowRight, ArrowUp, BarChart3, Brain, Shield, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
@@ -23,7 +23,7 @@ const Index = () => {
       description: "Advanced machine learning algorithms analyze market patterns and predict optimal buy opportunities.",
     },
     {
-      icon: TrendingUp,
+      icon: ArrowUp,
       title: "Real-Time Monitoring",
       description: "24/7 market surveillance with instant alerts for significant price movements and opportunities.",
     },
@@ -56,7 +56,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
+              <ArrowUp className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold text-white">DipBuyer AI</span>
           </div>
