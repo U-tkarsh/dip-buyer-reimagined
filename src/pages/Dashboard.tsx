@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -431,7 +430,7 @@ const Dashboard = () => {
                       <span className="font-semibold text-white">{stock.symbol}</span>
                       <div className={`flex items-center ${(stock.price_change_24h || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {(stock.price_change_24h || 0) >= 0 ? (
-                          <TrendingUp className="w-4 h-4" />
+                          <ArrowUp className="w-4 h-4" />
                         ) : (
                           <TrendingDown className="w-4 h-4" />
                         )}
