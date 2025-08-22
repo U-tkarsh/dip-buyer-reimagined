@@ -1,1 +1,7 @@
 project_id = "iojnhzkatlyvbjlnblyl"
+
+[functions.import-nse-data]
+verify_jwt = false
+
+[functions.generate-ai-recommendations]
+verify_jwt = false

@@ -170,18 +170,15 @@ const Dashboard = () => {
 
   const generateAIRecommendations = async () => {
     setGeneratingRecommendations(true);
-    console.log('Generating AI recommendations for current stocks...');
+    console.log('Generating AI recommendations using Gemini AI...');
     
     try {
       toast({
-        title: "Generating Recommendations",
-        description: "Creating AI recommendations for your stocks...",
+        title: "Generating AI Recommendations",
+        description: "Using Gemini AI to analyze your stocks and create professional recommendations...",
       });
 
-      // Get a sample of stocks to create recommendations for
-      const stocksToRecommend = stocks.slice(0, 10); // Take first 10 stocks
-      
-      if (stocksToRecommend.length === 0) {
+      if (stocks.length === 0) {
         toast({
           title: "No Stocks Available",
           description: "Please import stock data first before generating recommendations.",
@@ -190,81 +187,40 @@ const Dashboard = () => {
         return;
       }
 
-      // Clear existing recommendations first
-      const { error: deleteError } = await supabase
-        .from('recommendations')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000');
-
-      if (deleteError) {
-        console.error('Error clearing recommendations:', deleteError);
-      }
-
-      // Generate new recommendations
-      const newRecommendations = stocksToRecommend.map(stock => {
-        const priceChange = stock.price_change_24h || 0;
-        const isPositive = priceChange > 0;
-        
-        // Simple AI logic based on price movement and some randomization
-        let recommendationType: 'buy' | 'sell' | 'hold' | 'watch';
-        let confidenceScore: number;
-        let targetPriceMultiplier: number;
-        let reasoning: string;
-
-        if (priceChange > 2) {
-          recommendationType = Math.random() > 0.3 ? 'buy' : 'watch';
-          confidenceScore = 0.75 + Math.random() * 0.2;
-          targetPriceMultiplier = 1.05 + Math.random() * 0.15;
-          reasoning = `Strong upward momentum (+${priceChange.toFixed(2)}%). Technical indicators suggest continued growth potential.`;
-        } else if (priceChange < -2) {
-          recommendationType = Math.random() > 0.5 ? 'buy' : 'watch';
-          confidenceScore = 0.65 + Math.random() * 0.25;
-          targetPriceMultiplier = 1.10 + Math.random() * 0.20;
-          reasoning = `Significant dip (-${Math.abs(priceChange).toFixed(2)}%) presents potential buying opportunity. Oversold conditions detected.`;
-        } else {
-          recommendationType = Math.random() > 0.6 ? 'hold' : 'watch';
-          confidenceScore = 0.60 + Math.random() * 0.30;
-          targetPriceMultiplier = 1.02 + Math.random() * 0.08;
-          reasoning = `Stable price movement. Market consolidation phase with moderate growth potential.`;
-        }
-
-        return {
-          stock_id: stock.id,
-          recommendation_type: recommendationType,
-          confidence_score: Math.min(confidenceScore, 1.0),
-          target_price: Math.round(stock.current_price * targetPriceMultiplier * 100) / 100,
-          reasoning: reasoning,
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        };
+      console.log('Calling generate-ai-recommendations function...');
+      
+      const { data, error } = await supabase.functions.invoke('generate-ai-recommendations', {
+        body: JSON.stringify({})
       });
-
-      // Insert recommendations
-      const { data, error } = await supabase
-        .from('recommendations')
-        .insert(newRecommendations);
-
+      
+      console.log('AI recommendations response:', { data, error });
+      
       if (error) {
-        console.error('Error creating recommendations:', error);
-        throw error;
+        console.error('Function error:', error);
+        throw new Error(error.message || 'Failed to generate AI recommendations');
       }
 
-      console.log(`Generated ${newRecommendations.length} AI recommendations`);
+      if (!data?.success) {
+        throw new Error(data?.error || 'AI recommendation generation failed');
+      }
+
+      console.log('AI recommendations generated successfully:', data);
       
       toast({
         title: "Success",
-        description: `Generated ${newRecommendations.length} AI recommendations! Refreshing dashboard...`,
+        description: `Generated ${data.recommendations_count || 'multiple'} AI-powered recommendations using Gemini! Refreshing dashboard...`,
       });
 
-      // Refresh the dashboard data
+      // Refresh the dashboard data after a short delay
       setTimeout(() => {
         window.location.reload();
       }, 2000);
 
     } catch (error: any) {
-      console.error('Error generating recommendations:', error);
+      console.error('Error generating AI recommendations:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to generate AI recommendations.",
+        description: error.message || "Failed to generate AI recommendations. Please check console for details.",
         variant: "destructive",
       });
     } finally {
