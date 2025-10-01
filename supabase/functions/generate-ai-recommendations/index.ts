@@ -43,19 +43,17 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get current stocks from database
-    const { data: stocks, error: stocksError } = await supabase
+    // Get all Nifty 50 stocks from database
+    const { data: allStocks, error: stocksError } = await supabase
       .from('stocks')
-      .select('*')
-      .order('market_cap', { ascending: false })
-      .limit(10);
+      .select('*');
 
     if (stocksError) {
       console.error('Error fetching stocks:', stocksError);
       throw stocksError;
     }
 
-    if (!stocks || stocks.length === 0) {
+    if (!allStocks || allStocks.length === 0) {
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -68,7 +66,12 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Analyzing ${stocks.length} stocks with Gemini AI...`);
+    // Randomly select 10 stocks from the Nifty 50
+    const shuffled = [...allStocks].sort(() => Math.random() - 0.5);
+    const stocks = shuffled.slice(0, 10);
+    
+    console.log(`Analyzing ${stocks.length} randomly selected stocks with AI...`);
+    console.log('Selected stocks:', stocks.map(s => s.symbol).join(', '));
 
     // Clear existing recommendations
     await supabase
