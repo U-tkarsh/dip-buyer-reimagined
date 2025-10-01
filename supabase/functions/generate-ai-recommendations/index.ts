@@ -35,10 +35,10 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')!;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not found in environment variables');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -111,42 +111,46 @@ Consider:
 
 Respond with a JSON array containing recommendations for all stocks. Be professional and provide clear reasoning for each recommendation.`;
 
-    // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+    // Call Lovable AI Gateway (Gemini 2.5 Flash)
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: 'POST',
       headers: {
+        Authorization: `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192,
-        }
-      })
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'You are a professional stock market analyst. Return ONLY a valid JSON array matching the specified schema. No prose.' },
+          { role: 'user', content: prompt }
+        ],
+      }),
     });
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error('Gemini API error:', errorText);
-      throw new Error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
+    if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ success: false, error: 'Rate limit exceeded. Please try again shortly.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ success: false, error: 'Payment required. Please add Lovable AI credits.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const t = await aiResponse.text();
+      console.error('AI gateway error:', aiResponse.status, t);
+      throw new Error(`AI gateway error: ${aiResponse.status} - ${t}`);
     }
 
-    const geminiData = await geminiResponse.json();
-    console.log('Gemini response:', JSON.stringify(geminiData, null, 2));
+    const aiData = await aiResponse.json();
+    console.log('AI response:', JSON.stringify(aiData, null, 2));
 
-    if (!geminiData.candidates || !geminiData.candidates[0] || !geminiData.candidates[0].content) {
-      throw new Error('Invalid response from Gemini API');
-    }
-
-    const geminiText = geminiData.candidates[0].content.parts[0].text;
-    console.log('Gemini generated text:', geminiText);
+    const aiText: string = aiData.choices?.[0]?.message?.content ?? '';
+    const geminiText = aiText; // keep downstream parsing intact
+    console.log('AI generated text:', aiText);
 
     // Parse Gemini response
     let geminiRecommendations: GeminiRecommendation[] = [];
